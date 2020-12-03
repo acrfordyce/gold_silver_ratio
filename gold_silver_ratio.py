@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import http.client
 import json
@@ -14,7 +14,7 @@ headers = {
 }
 conn = http.client.HTTPSConnection("www.goldapi.io")
 
-# Get current silver price.
+# Get current silver prpayloadice.
 conn.request("GET", "/api/XAG/USD", payload, headers)
 res = conn.getresponse()
 data = json.loads(res.read().decode("utf-8"))
