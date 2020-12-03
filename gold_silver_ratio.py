@@ -1,32 +1,37 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import urllib
-import re
-import string
+import http.client
+import json
 
-commodities_url = "http://money.cnn.com/data/commodities/"
-commodities_content = urllib.urlopen(commodities_url).read()
+# Adjust these number to suit your needs
+buy_silver_ratio_min = 66
+buy_gold_ratio_max = 40
 
-m = re.compile(r'<strong>Gold.*?\n.*?\n.*?\n.*?\n.*?last_-1">(.*?)<')
-n = re.compile(r'<strong>Silver.*?\n.*?\n.*?\n.*?\n.*?last_-1">(.*?)<')
+payload = ''
+headers = {
+  'x-access-token': 'goldapi-dwpk2uki92tuzg-io',
+  'Content-Type': 'application/json'
+}
+conn = http.client.HTTPSConnection("www.goldapi.io")
 
-commodities_prices = []
+# Get current silver prpayloadice.
+conn.request("GET", "/api/XAG/USD", payload, headers)
+res = conn.getresponse()
+data = json.loads(res.read().decode("utf-8"))
+silver_price = data['price']
 
-gold_price = m.finditer(commodities_content)
-silver_price = n.finditer(commodities_content)
+# Get current gold price.
+conn.request("GET", "/api/XAU/USD", payload, headers)
+res = conn.getresponse()
+data = json.loads(res.read().decode("utf-8"))
+gold_price = data['price']
 
-for match in gold_price:
-    commodities_prices.append(match.group(1))
-    
-for match in silver_price:
-    commodities_prices.append(match.group(1))
+gold_silver_ratio = round(gold_price/silver_price, 2)
 
-for i in range(len(commodities_prices)):
-    commodities_prices[i] = string.replace(commodities_prices[i], ',', '')
-        
-gold_price = float(commodities_prices[0])
-silver_price = float(commodities_prices[1])
-
-gold_silver_ratio = gold_price/silver_price
-
-print "Today's gold to silver ratio is: ", gold_silver_ratio
+print(f"Today's gold to silver ratio is: {gold_silver_ratio}")
+if gold_silver_ratio >= buy_silver_ratio_min:
+    print("Buy Silver!")
+elif buy_gold_ratio_max <= gold_silver_ratio > buy_silver_ratio_min:
+    print("Hang tight.  Don't buy either.")
+elif gold_silver_ratio < buy_gold_ratio_max:
+    print("Buy Gold!")
